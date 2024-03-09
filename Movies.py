@@ -247,3 +247,72 @@ mov_id_value = mov_id.first()["mov_id"]
 act_id=movie_cast_df.filter(movie_cast_df.mov_id == mov_id_value).select("act_id").first()["act_id"]
 # act_id_value = act_id.first()["act_id"]
 actor_df.filter(actor_df.act_id==act_id_value).select("act_fname","act_lname").show()
+
+#6 Get actor_id of actor who has acted in Annie Hall
+from pyspark.sql.functions import col
+movie_cast_df.filter(col("mov_id") == (movies_df.filter(col("mov_title")=='Annie Hall').select("mov_id").distinct().first()["mov_id"])).select("act_id").show()
+
+# COMMAND ----------
+
+#7 Firstname of actor who is in move Annie Hall
+actor_df.filter(
+    actor_df.act_id == (
+        movie_cast_df.filter(
+            movie_cast_df.mov_id == (
+                movies_df.filter(movies_df.mov_title == 'Annie Hall').select("mov_id").first()["mov_id"]
+            )
+        ).select("act_id").first()["act_id"]
+    )
+).select("act_fname").show()
+
+# COMMAND ----------
+
+director_df.printSchema()
+movie_director_df.printSchema()
+movie_cast_df.printSchema()
+# actor_df.filter(
+#     actor_df.act_id == (
+#         movie_cast_df.filter(
+#             movie_cast_df.mov_id == (
+#                 movies_df.filter(movies_df.mov_title == 'Annie Hall').select("mov_id").first()["mov_id"]
+#             )
+#         ).select("act_id").first()["act_id"]
+#     )
+# ).select("act_fname").show()
+
+# COMMAND ----------
+
+#8 
+director_df.filter(
+    director_df.dir_id == (
+        movie_director_df.filter(
+            movie_director_df.mov_id == (
+                movie_cast_df.filter(
+                    movie_cast_df.role == 'John Scottie Ferguson').select("mov_id").first()["mov_id"])).select("dir_id").first()["dir_id"])).select("dir_fname").show()
+
+# COMMAND ----------
+
+# movie_cast_df.filter(movie_cast_df.role=='John Scottie Ferguson').select("mov_id").first()["mov_id"]
+movie_director_df.filter(movie_director_df.mov_id=='901').select("mov_id").first()["mov_id"]
+
+# COMMAND ----------
+
+#9
+director_df.filter(
+    director_df.dir_id == (
+        movie_director_df.filter(
+            movie_director_df.mov_id == (
+                movie_cast_df.filter(
+                    movie_cast_df.role == 'John Scottie Ferguson').select("mov_id").first()["mov_id"])).select("dir_id").first()["dir_id"])).select("dir_fname").show()
+
+# COMMAND ----------
+
+#10
+director_df.filter(
+    director_df.dir_id == (
+        movie_director_df.filter(
+            movie_director_df.mov_id == (
+                movie_cast_df.filter(
+                    movie_cast_df.mov_id == (
+                        movies_df.filter(
+                            movies_df.mov_title == 'Eyes Wide Shut').select("mov_id").first()["mov_id"])).select("mov_id").first()["mov_id"])).select("dir_id").first()["dir_id"])).select("dir_fname","dir_lname").show()
