@@ -316,3 +316,31 @@ director_df.filter(
                     movie_cast_df.mov_id == (
                         movies_df.filter(
                             movies_df.mov_title == 'Eyes Wide Shut').select("mov_id").first()["mov_id"])).select("mov_id").first()["mov_id"])).select("dir_id").first()["dir_id"])).select("dir_fname","dir_lname").show()
+
+# COMMAND ----------
+
+#11
+movies_df.filter(movies_df.mov_rel_country != 'UK').select("mov_title","mov_year").show()
+
+# COMMAND ----------
+
+#12
+movies_rating_df.filter(movies_rating_df.rev_id.isin (movie_reviewer_df.filter(movie_reviewer_df.rev_name.isNull()).select("rev_id").rdd.flatMap(lambda x:x).collect())).select("mov_id").show()
+
+# COMMAND ----------
+
+#13 Movies directed by director Woody Allen
+movies_df.filter(movies_df.mov_id.isin(
+    movie_director_df.filter(
+        movie_director_df.dir_id.isin(director_df.filter((director_df.dir_fname=='Woody') & (director_df.dir_lname=='Allen')).select("dir_id").rdd.flatMap(lambda x:x).collect())).select("mov_id").rdd.flatMap(lambda x:x).collect())).select("mov_title").show()
+
+# COMMAND ----------
+
+#14
+movies_df.filter(movies_df.mov_id.isin(movies_rating_df.filter(movies_rating_df.rev_stars >= 3).select("mov_id").rdd.flatMap(lambda x:x).collect())).select("mov_year").distinct().orderBy("mov_year").show()
+
+# COMMAND ----------
+
+#15 Movies that has num_o_ratings null
+movies_df.filter(movies_df.mov_id.isin(movies_rating_df.filter(movies_rating_df.num_o_ratings.isNull()).select("mov_id").rdd.flatMap(lambda x:x).collect())).select("mov_title").show()
+
