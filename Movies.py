@@ -344,3 +344,102 @@ movies_df.filter(movies_df.mov_id.isin(movies_rating_df.filter(movies_rating_df.
 #15 Movies that has num_o_ratings null
 movies_df.filter(movies_df.mov_id.isin(movies_rating_df.filter(movies_rating_df.num_o_ratings.isNull()).select("mov_id").rdd.flatMap(lambda x:x).collect())).select("mov_title").show()
 
+# COMMAND ----------
+
+#16 Reviewer who has provided no rating to any movie
+movie_reviewer_df.filter(movie_reviewer_df.rev_id.isin(movies_rating_df.filter(movies_rating_df.rev_stars.isNull()).select("rev_id").rdd.flatMap(lambda x: x).collect())).select("rev_name").show()
+
+# COMMAND ----------
+
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+movie_reviewer_df \
+.alias("movie_reviewer") \
+.join(movies_rating_df .alias("movies_rating"),col("movie_reviewer.rev_id")==col("movies_rating.rev_id"),"inner") \
+.join(movies_df.alias("movies"),col("movies.mov_id")==col("movies_rating.mov_id"),"inner") \
+.filter(col("movies_rating.rev_id") \
+        .isin(col("movies_rating.rev_stars") \
+              .filter(col("movies_rating.rev_stars").isNull()) \
+              .select("movies_rating.rev_id").rdd.flatMap(lambda x:x).collect())).select("movies.mov_title","movie_reviewer.rev_name","movies_rating.rev_stars").show()
+
+# COMMAND ----------
+
+#17 Display Reviewer name, Movie Title where rev_stars in not null
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+result_df = (
+    movie_reviewer_df.alias("movie_reviewer")
+    .join(
+        movies_rating_df.alias("movies_rating"),
+        col("movie_reviewer.rev_id") == col("movies_rating.rev_id"),
+        "inner"
+    )
+    .join(
+        movies_df.alias("movies"),
+        col("movies.mov_id") == col("movies_rating.mov_id"),
+        "inner"
+    )
+    .filter(
+        col("movies_rating.rev_id").isin(
+            movies_rating_df.alias("movies_rating")
+            .filter((col("movies_rating.rev_stars").isNotNull()))
+            .select("movies_rating.rev_id")
+            .rdd.flatMap(lambda x: x)
+            .collect()
+        )
+    )
+    .select("movies.mov_title", "movie_reviewer.rev_name", "movies_rating.rev_stars")
+    .orderBy("movie_reviewer.rev_name")
+)
+
+# Show the result
+result_df.show()
+
+# COMMAND ----------
+
+#18 Display Reviewer name, Movie Title where rev_stars in not null and reviewer name isn not null
+
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+result_df = (
+    movie_reviewer_df.alias("movie_reviewer")
+    .join(
+        movies_rating_df.alias("movies_rating"),
+        col("movie_reviewer.rev_id") == col("movies_rating.rev_id"),
+        "inner"
+    )
+    .join(
+        movies_df.alias("movies"),
+        col("movies.mov_id") == col("movies_rating.mov_id"),
+        "inner"
+    )
+    .filter(
+        (col("movies_rating.rev_stars").isNotNull()) & (col("movie_reviewer.rev_name").isNotNull())
+        )
+    .select("movies.mov_title", "movie_reviewer.rev_name", "movies_rating.rev_stars")
+    .orderBy("movie_reviewer.rev_name")
+)
+
+# Show the result
+result_df.show()
+
+# COMMAND ----------
+
+#19 Reviewer who has provided rating for more than one movie
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+movie_reviewer_df.filter(movie_reviewer_df.rev_id.isin
+                         (movies_rating_df.groupBy("rev_id").agg(count("rev_id").alias("rev_count")).filter("rev_count > 1").select("rev_id").rdd.flatMap(lambda x:x).collect())).select("rev_name").show()
+
+# COMMAND ----------
+
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+#-------------------------------------------------------------------------------------------#
+movies_rating_df = movies_rating_df.withColumn("rev_stars",
+                                movies_rating_df["rev_stars"]
+                                .cast('float'))
+#-------------------------------------------------------------------------------------------#
+# 20 Select count of movies where rev_stars is not null and also display average stars
+movies_rating_df.filter(col("rev_stars").isNotNull()).count()
+
