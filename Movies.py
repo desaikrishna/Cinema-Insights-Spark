@@ -443,3 +443,38 @@ movies_rating_df = movies_rating_df.withColumn("rev_stars",
 # 20 Select count of movies where rev_stars is not null and also display average stars
 movies_rating_df.filter(col("rev_stars").isNotNull()).count()
 
+#-------------------------------------------------------------------------------------------#
+# movies_rating_df.filter(col("rev_stars").isNotNull()).agg(avg("rev_stars")).show()
+#-------------------------------------------------------------------------------------------#
+# 21 Movie which has max review stars
+#  movies_rating_df.filter(
+#     movies_rating_df.rev_stars==(
+#         movies_rating_df.agg(max("rev_stars").alias(
+#             "maxi")).first()["maxi"])).select("mov_id").show()
+#-------------------------------------------------------------------------------------------#
+# movies_rating_df.filter(col("rev_stars").isNotNull()).groupBy("mov_id").agg(max("rev_stars").alias("max_rev_stars")).show()
+#-------------------------------------------------------------------------------------------#
+
+# COMMAND ----------
+
+# 22 Movies that has num_o_ratings above 202778
+movies_rating_df.filter(col("num_o_ratings") > 202778.0).groupBy("mov_id").agg(sum("num_o_ratings")).show()
+#-------------------------------------------------------------------------------------------#
+# 23 Movies that have rating less than 5
+# movies_rating_df.groupBy("mov_id").agg(sum("rev_stars").alias("rating")).where(col("raring") < 5).show()
+#--------------------------------------------------------------------------------------------#
+# 24 Reviewer id of reviewer who has reviewed more than one movie
+#movies_rating_df.groupBy("rev_id").agg(count("rev_id").alias("No_of_rating")).where(col("No_of_rating") > 1).show()
+
+# COMMAND ----------
+
+display(movies_rating_df)
+
+# COMMAND ----------
+
+#25 Display the average of rev_stars of each moving having num_o_rating count greater than 200000
+movies_rating_df.groupBy("mov_id"
+                        ).agg(avg("rev_stars")
+                              .alias("avg"),avg("num_o_ratings"
+                                               ).alias("num")
+                             ).where((col("num")>200000) & (col("num").isNotNull()) & (col("avg").isNotNull())).show()
