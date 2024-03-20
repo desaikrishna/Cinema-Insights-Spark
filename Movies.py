@@ -478,3 +478,32 @@ movies_rating_df.groupBy("mov_id"
                               .alias("avg"),avg("num_o_ratings"
                                                ).alias("num")
                              ).where((col("num")>200000) & (col("num").isNotNull()) & (col("avg").isNotNull())).show()
+
+# COMMAND ----------
+
+#26 Name of reviewers that has reviewed movie American Beauty
+movie_reviewer_df.filter(movie_reviewer_df.rev_id.isin
+                        (movies_rating_df.filter(movies_rating_df.mov_id.isin(
+                        movies_df.filter(col("mov_title")=='American Beauty').select("mov_id").rdd.flatMap(lambda x:x)
+                        .collect())).select("rev_id").rdd.flatMap(lambda x:x).collect())
+                        ).select("rev_name").show()
+
+
+#movie_reviewer_df.filter(movie_reviewer_df.rev_id.isin(movies_rating_df.filter(movies_rating_df.rev_stars.isNull()).select("rev_id").rdd.flatMap(lambda x: x).collect())).select("rev_name").show()
+
+
+# COMMAND ----------
+
+#27 Movies director by director with firstname James
+movies_df.filter(movies_df.mov_id.isin(movie_director_df.filter
+                                       (movie_director_df.dir_id.isin
+                                                                    (director_df.filter(director_df.dir_fname == 'James')
+                                                                    .select("dir_id").rdd.flatMap(lambda x:x).collect()
+                                                                    )).select("mov_id").rdd.flatMap(lambda x:x).collect()
+                                          )
+                  ).select("mov_title").show()
+
+# COMMAND ----------
+
+#28 Actor who has acted in more than one movie
+movie_cast_df.groupBy("act_id").agg(count("act_id").alias("count")).where(col("count") > 1).select("act_id").show()
